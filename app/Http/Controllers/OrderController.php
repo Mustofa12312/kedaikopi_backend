@@ -97,13 +97,49 @@ class OrderController extends Controller
             $order->orderItems()->create($item);
         }
 
-        // In the next phase, we will integrate Midtrans here
+        // Midtrans Integration
+        \Midtrans\Config::$serverKey = config('midtrans.server_key');
+        \Midtrans\Config::$isProduction = config('midtrans.is_production');
+        \Midtrans\Config::$isSanitized = true;
+        \Midtrans\Config::$is3ds = true;
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Order berhasil dibuat',
-            'data' => $order->load('orderItems')
-        ], 201);
+        $params = [
+            'transaction_details' => [
+                'order_id' => $order->order_number,
+                'gross_amount' => $order->total,
+            ],
+            'customer_details' => [
+                'first_name' => $order->customer_name,
+                'email' => $request->user() ? $request->user()->email : 'customer@kedaiku.com',
+                'phone' => $order->phone,
+            ],
+        ];
+
+        try {
+            $snapToken = \Midtrans\Snap::getToken($params);
+            
+            // Create payment record
+            $order->payment()->create([
+                'snap_token' => $snapToken,
+                'status' => 'pending',
+                'gross_amount' => $order->total,
+                'payment_type' => null
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order berhasil dibuat',
+                'data' => [
+                    'order' => $order->load('orderItems'),
+                    'snap_token' => $snapToken
+                ]
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal membuat token pembayaran: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function show(string $id)

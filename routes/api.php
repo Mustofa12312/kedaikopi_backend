@@ -18,6 +18,8 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 });
 
+Route::post('/midtrans/callback', [\App\Http\Controllers\MidtransController::class, 'callback']);
+
 Route::apiResource('categories', CategoryController::class);
 Route::apiResource('products', ProductController::class);
 Route::apiResource('orders', OrderController::class)->only(['index', 'store', 'show']);
