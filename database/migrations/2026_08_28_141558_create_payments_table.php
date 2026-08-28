@@ -13,6 +13,15 @@ return new class extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('order_id')->constrained()->cascadeOnDelete();
+            $table->string('transaction_id')->nullable();
+            $table->string('order_id_midtrans')->nullable();
+            $table->string('payment_type')->nullable();
+            $table->decimal('gross_amount', 15, 2)->nullable();
+            $table->string('transaction_status')->nullable();
+            $table->string('fraud_status')->nullable();
+            $table->timestamp('settlement_time')->nullable();
+            $table->json('raw_response')->nullable();
             $table->timestamps();
         });
     }
