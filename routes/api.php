@@ -20,6 +20,26 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::post('/midtrans/callback', [\App\Http\Controllers\MidtransController::class, 'callback']);
 
-Route::apiResource('categories', CategoryController::class);
-Route::apiResource('products', ProductController::class);
-Route::apiResource('orders', OrderController::class)->only(['index', 'store', 'show']);
+// Public read-only routes for products and categories
+Route::get('categories', [CategoryController::class, 'index']);
+Route::get('categories/{category}', [CategoryController::class, 'show']);
+Route::get('products', [ProductController::class, 'index']);
+Route::get('products/{product}', [ProductController::class, 'show']);
+
+// Public write for orders
+Route::post('orders', [OrderController::class, 'store']);
+Route::get('orders/{order}', [OrderController::class, 'show']);
+
+// Admin only routes
+Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+    Route::post('categories', [CategoryController::class, 'store']);
+    Route::put('categories/{category}', [CategoryController::class, 'update']);
+    Route::delete('categories/{category}', [CategoryController::class, 'destroy']);
+    
+    Route::post('products', [ProductController::class, 'store']);
+    Route::put('products/{product}', [ProductController::class, 'update']);
+    Route::delete('products/{product}', [ProductController::class, 'destroy']);
+    
+    Route::get('orders', [OrderController::class, 'index']); // Admin sees all orders
+    Route::put('orders/{order}', [OrderController::class, 'update']); // Update order status
+});

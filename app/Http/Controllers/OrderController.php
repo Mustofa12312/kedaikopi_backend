@@ -159,4 +159,49 @@ class OrderController extends Controller
             'data' => $order
         ]);
     }
+
+    public function update(Request $request, string $id)
+    {
+        $order = Order::find($id);
+
+        if (!$order) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pesanan tidak ditemukan'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'order_status' => 'sometimes|string|in:pending,processing,ready,completed,cancelled',
+            'payment_status' => 'sometimes|string|in:pending,paid,failed,expired'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        if ($request->has('order_status')) {
+            $order->order_status = $request->order_status;
+        }
+
+        if ($request->has('payment_status')) {
+            $order->payment_status = $request->payment_status;
+            // Also update payment record if exists
+            if ($order->payment) {
+                $order->payment->update(['status' => $request->payment_status]);
+            }
+        }
+
+        $order->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pesanan berhasil diupdate',
+            'data' => $order
+        ]);
+    }
 }
