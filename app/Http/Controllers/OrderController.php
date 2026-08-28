@@ -116,7 +116,7 @@ class OrderController extends Controller
         ];
 
         try {
-            $snapToken = \Midtrans\Snap::getToken($params);
+            $snapToken = \Midtrans\Snap::getSnapToken($params);
             
             // Create payment record
             $order->payment()->create([
