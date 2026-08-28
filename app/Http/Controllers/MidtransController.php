@@ -23,7 +23,10 @@ class MidtransController extends Controller
                     $paymentStatus = 'failed';
                 }
                 
-                $order->update(['payment_status' => $paymentStatus]);
+                $order->update([
+                    'payment_status' => $paymentStatus,
+                    'order_status' => $paymentStatus === 'paid' ? 'processing' : $order->order_status
+                ]);
                 
                 // Update or create payment record
                 Payment::updateOrCreate(

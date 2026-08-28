@@ -38,6 +38,10 @@ class OrderTest extends TestCase
             ]
         ]);
 
+        if ($response->status() !== 201) {
+            dump($response->json());
+        }
+
         $response->assertStatus(201);
         
         // 2 * 15000 = 30000 + 2000 service fee = 32000
